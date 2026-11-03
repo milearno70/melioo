@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PetRouteImport } from './routes/pet'
+import { Route as PlannerRouteImport } from './routes/planner'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as TimerRouteImport } from './routes/timer'
 
@@ -30,6 +31,11 @@ const PetRoute = PetRouteImport.update({
   path: '/pet',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlannerRoute = PlannerRouteImport.update({
+  id: '/planner',
+  path: '/planner',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
@@ -45,6 +51,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/pet': typeof PetRoute
+  '/planner': typeof PlannerRoute
   '/register': typeof RegisterRoute
   '/timer': typeof TimerRoute
 }
@@ -52,6 +59,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/pet': typeof PetRoute
+  '/planner': typeof PlannerRoute
   '/register': typeof RegisterRoute
   '/timer': typeof TimerRoute
 }
@@ -60,21 +68,23 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/pet': typeof PetRoute
+  '/planner': typeof PlannerRoute
   '/register': typeof RegisterRoute
   '/timer': typeof TimerRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/pet' | '/register' | '/timer'
+  fullPaths: '/' | '/login' | '/pet' | '/planner' | '/register' | '/timer'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/pet' | '/register' | '/timer'
-  id: '__root__' | '/' | '/login' | '/pet' | '/register' | '/timer'
+  to: '/' | '/login' | '/pet' | '/planner' | '/register' | '/timer'
+  id: '__root__' | '/' | '/login' | '/pet' | '/planner' | '/register' | '/timer'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
   PetRoute: typeof PetRoute
+  PlannerRoute: typeof PlannerRoute
   RegisterRoute: typeof RegisterRoute
   TimerRoute: typeof TimerRoute
 }
@@ -102,6 +112,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PetRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/planner': {
+      id: '/planner'
+      path: '/planner'
+      fullPath: '/planner'
+      preLoaderRoute: typeof PlannerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/register': {
       id: '/register'
       path: '/register'
@@ -123,6 +140,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
   PetRoute: PetRoute,
+  PlannerRoute: PlannerRoute,
   RegisterRoute: RegisterRoute,
   TimerRoute: TimerRoute,
 }

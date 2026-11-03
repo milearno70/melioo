@@ -127,6 +127,9 @@ export const actions = {
       return { ...s, points: s.points + delta, tasks: s.tasks.map((x) => (x.id === id ? { ...x, done: !x.done } : x)) };
     });
   },
+  addTasks(list: Omit<Task, "id" | "done">[]) {
+    set((s) => ({ ...s, tasks: [...s.tasks, ...list.map((t) => ({ ...t, id: crypto.randomUUID(), done: false }))] }));
+  },
   updateSettings(p: Partial<Settings>) {
     set((s) => {
       const settings = { ...s.settings, ...p };
