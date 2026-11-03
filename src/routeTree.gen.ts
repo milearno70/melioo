@@ -10,33 +10,73 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as PetRouteImport } from './routes/pet'
+import { Route as RegisterRouteImport } from './routes/register'
+import { Route as TimerRouteImport } from './routes/timer'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PetRoute = PetRouteImport.update({
+  id: '/pet',
+  path: '/pet',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TimerRoute = TimerRouteImport.update({
+  id: '/timer',
+  path: '/timer',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/pet': typeof PetRoute
+  '/register': typeof RegisterRoute
+  '/timer': typeof TimerRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/pet': typeof PetRoute
+  '/register': typeof RegisterRoute
+  '/timer': typeof TimerRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/pet': typeof PetRoute
+  '/register': typeof RegisterRoute
+  '/timer': typeof TimerRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/login' | '/pet' | '/register' | '/timer'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/login' | '/pet' | '/register' | '/timer'
+  id: '__root__' | '/' | '/login' | '/pet' | '/register' | '/timer'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LoginRoute: typeof LoginRoute
+  PetRoute: typeof PetRoute
+  RegisterRoute: typeof RegisterRoute
+  TimerRoute: typeof TimerRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +88,43 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pet': {
+      id: '/pet'
+      path: '/pet'
+      fullPath: '/pet'
+      preLoaderRoute: typeof PetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/timer': {
+      id: '/timer'
+      path: '/timer'
+      fullPath: '/timer'
+      preLoaderRoute: typeof TimerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LoginRoute: LoginRoute,
+  PetRoute: PetRoute,
+  RegisterRoute: RegisterRoute,
+  TimerRoute: TimerRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
