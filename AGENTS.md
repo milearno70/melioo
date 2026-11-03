@@ -8,3 +8,6 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- MELIO is a React design prototype; all data goes through src/lib/mock/store.ts (localStorage) whose shapes mirror the planned ASP.NET Core REST API in src/lib/mock/api-contract.ts — so the team can swap in real endpoints later.
+- Pomodoro timer stores an end timestamp and recomputes remaining time — keeps it accurate in inactive tabs.
