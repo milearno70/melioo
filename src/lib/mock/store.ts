@@ -15,6 +15,9 @@ export interface Session { id: string; subjectId: string; minutes: number; mode:
 export interface Pet { name: string; happiness: number; energy: number; hunger: number; xp: number; level: number; accessory: "none" | "bow" | "hat" | "star"; lastAction?: string; lastActionAt?: number }
 export interface TimerState { mode: Mode; running: boolean; endsAt: number | null; remainingMs: number; subjectId: string; focusCount: number }
 export interface Settings { focus: number; short: number; long: number; longEvery: number; dailyGoalMin: number }
+export type BookStatus = "want" | "reading" | "done";
+export interface Book { id: string; title: string; author: string; category: string; status: BookStatus; progress: number; cover: string; description: string; createdAt: number }
+export interface Note { id: string; title: string; content: string; subjectId: string | null; tags: string[]; pinned: boolean; updatedAt: number }
 export interface User { name: string; email: string }
 
 export interface State {
@@ -24,6 +27,8 @@ export interface State {
   sessions: Session[];
   pet: Pet;
   points: number;
+  books: Book[];
+  notes: Note[];
   settings: Settings;
   timer: TimerState;
 }
@@ -55,6 +60,17 @@ function seed(): State {
     sessions: [
       { id: "s1", subjectId: "prog", minutes: 25, mode: "focus", endedAt: now - 3 * 36e5 },
       { id: "s2", subjectId: "math", minutes: 25, mode: "focus", endedAt: now - 2 * 36e5 },
+    ],
+    books: [
+      { id: "b1", title: "Clean Code", author: "Robert C. Martin", category: "Programming", status: "reading", progress: 45, cover: "blue", description: "Reading a chapter each weekend.", createdAt: now - 5e8 },
+      { id: "b2", title: "Database System Concepts", author: "Silberschatz et al.", category: "Textbook", status: "reading", progress: 20, cover: "lavender", description: "Course textbook for DB Systems.", createdAt: now - 4e8 },
+      { id: "b3", title: "The Little Prince", author: "Antoine de Saint-Exupéry", category: "Fiction", status: "done", progress: 100, cover: "pink", description: "Comfort read ♡", createdAt: now - 3e8 },
+      { id: "b4", title: "Calculus: Early Transcendentals", author: "James Stewart", category: "Textbook", status: "want", progress: 0, cover: "butter", description: "", createdAt: now - 2e8 },
+    ],
+    notes: [
+      { id: "n1", title: "SQL JOIN cheat sheet", content: "INNER JOIN → only matching rows\nLEFT JOIN → all left rows + matches\nRIGHT JOIN → all right rows + matches\nFULL OUTER → everything\n\nRemember: filter in ON vs WHERE changes results for outer joins!", subjectId: "db", tags: ["sql", "exam"], pinned: true, updatedAt: now - 36e5 },
+      { id: "n2", title: "Limits — key ideas", content: "lim x→a f(x) = L means f gets arbitrarily close to L.\nSqueeze theorem for sin(x)/x → 1.", subjectId: "math", tags: ["calculus"], pinned: false, updatedAt: now - 864e5 },
+      { id: "n3", title: "Essay brainstorm", content: "Remote learning: flexibility vs. isolation.\nInterview two classmates?", subjectId: "eng", tags: ["ideas"], pinned: false, updatedAt: now - 2 * 864e5 },
     ],
     pet: { name: "Mochi", happiness: 78, energy: 64, hunger: 40, xp: 140, level: 3, accessory: "bow" },
     points: 320,
@@ -130,6 +146,18 @@ export const actions = {
   addTasks(list: Omit<Task, "id" | "done">[]) {
     set((s) => ({ ...s, tasks: [...s.tasks, ...list.map((t) => ({ ...t, id: crypto.randomUUID(), done: false }))] }));
   },
+  saveBook(b: Omit<Book, "id" | "createdAt"> & { id?: string }) {
+    set((s) => b.id ? { ...s, books: s.books.map((x) => (x.id === b.id ? { ...x, ...b, id: x.id } : x)) }
+      : { ...s, books: [{ ...b, id: crypto.randomUUID(), createdAt: Date.now() }, ...s.books] });
+  },
+  deleteBook(id: string) { set((s) => ({ ...s, books: s.books.filter((x) => x.id !== id) })); },
+  createNote(): string {
+    const id = crypto.randomUUID();
+    set((s) => ({ ...s, notes: [{ id, title: "", content: "", subjectId: null, tags: [], pinned: false, updatedAt: Date.now() }, ...s.notes] }));
+    return id;
+  },
+  updateNote(id: string, p: Partial<Omit<Note, "id">>) { set((s) => ({ ...s, notes: s.notes.map((n) => (n.id === id ? { ...n, ...p, updatedAt: Date.now() } : n)) })); },
+  deleteNote(id: string) { set((s) => ({ ...s, notes: s.notes.filter((n) => n.id !== id) })); },
   updateSettings(p: Partial<Settings>) {
     set((s) => {
       const settings = { ...s.settings, ...p };
