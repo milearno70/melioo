@@ -1,13 +1,13 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
-import { BookOpen, ChartLine, ChevronsLeft, ChevronsRight, Gift, Home, ListTodo, LogOut, Menu, NotebookPen, PawPrint, Settings, Sparkles, Timer, Trophy, X } from "lucide-react";
+import { BookOpen, ChartLine, ChevronsLeft, ChevronsRight, Gift, Home, ListTodo, LogOut, Menu, NotebookPen, PawPrint, Settings, Sparkles, Timer, Trophy, Wand2, X } from "lucide-react";
 import { actions, useStore } from "@/lib/mock/store";
 import { cn } from "@/lib/utils";
 import { Logo, Star, StarField } from "./decor";
 
-type Item = { label: string; icon: typeof Home; to?: "/" | "/timer" | "/pet"; soon?: boolean };
+type Item = { label: string; icon: typeof Home; to?: "/" | "/timer" | "/pet" | "/planner"; soon?: boolean };
 const NAV: { title: string; items: Item[] }[] = [
-  { title: "Main", items: [{ label: "Dashboard", icon: Home, to: "/" }, { label: "Study Timer", icon: Timer, to: "/timer" }, { label: "Tasks", icon: ListTodo, soon: true }, { label: "Study Tracking", icon: ChartLine, soon: true }] },
+  { title: "Main", items: [{ label: "Dashboard", icon: Home, to: "/" }, { label: "Study Timer", icon: Timer, to: "/timer" }, { label: "AI Task Planner", icon: Wand2, to: "/planner" }, { label: "Tasks", icon: ListTodo, soon: true }, { label: "Study Tracking", icon: ChartLine, soon: true }] },
   { title: "My Space", items: [{ label: "My Library", icon: BookOpen, soon: true }, { label: "Notes", icon: NotebookPen, soon: true }, { label: "My Pet", icon: PawPrint, to: "/pet" }] },
   { title: "Rewards", items: [{ label: "Reward Shop", icon: Gift, soon: true }, { label: "Achievements", icon: Trophy, soon: true }] },
   { title: "Other", items: [{ label: "AI Assistant", icon: Sparkles, soon: true }, { label: "Settings", icon: Settings, soon: true }] },
