@@ -35,7 +35,7 @@ function Login() {
     setErrors({}); setLoading(true);
     // Prototype: no backend yet. Real login → POST /api/auth/login (password verified server-side, never stored here).
     setTimeout(() => {
-      const name = r.data.email.split("@")[0].replace(/[._-]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+      const name = (r.data.email.split("@")[0] ?? "").replace(/[._-]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
       actions.login({ name, email: r.data.email });
       toast.success(`Welcome back, ${name}!`);
       nav({ to: "/" });
