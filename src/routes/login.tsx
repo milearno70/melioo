@@ -24,7 +24,7 @@ const schema = z.object({
 function Login() {
   const nav = useNavigate();
   const [show, setShow] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Partial<Record<"email" | "password", string>>>({});
   const [loading, setLoading] = useState(false);
 
   function submit(e: React.FormEvent<HTMLFormElement>) {

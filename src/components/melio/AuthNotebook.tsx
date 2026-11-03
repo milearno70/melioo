@@ -46,7 +46,7 @@ export function AuthNotebook({ children }: { children: ReactNode }) {
   );
 }
 
-export function Field({ label, error, children, id }: { label: string; error?: string; children: ReactNode; id: string }) {
+export function Field({ label, error, children, id }: { label: string; error?: string | undefined; children: ReactNode; id: string }) {
   return (
     <div>
       <label htmlFor={id} className="mb-1 block text-sm font-bold">{label}</label>

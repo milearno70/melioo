@@ -27,7 +27,7 @@ const schema = z.object({
 function Register() {
   const nav = useNavigate();
   const [show, setShow] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Partial<Record<"name" | "email" | "password" | "confirm" | "terms", string>>>({});
 
   function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
