@@ -8,8 +8,10 @@ export function AuthNotebook({ children }: { children: ReactNode }) {
       <div className="bg-dots-blue absolute inset-y-0 left-0 hidden w-16 md:block lg:w-24" aria-hidden />
       <div className="bg-dots-blue absolute inset-y-0 right-0 hidden w-16 md:block lg:w-24" aria-hidden />
       {[["8%", "10%"], ["90%", "14%"], ["14%", "80%"], ["84%", "78%"], ["50%", "4%"], ["20%", "45%"], ["78%", "45%"]].map(([l, t], i) => (
-        <Star key={i} className="pointer-events-none absolute h-5 w-5 animate-float opacity-80" />
-      )).map((el, i) => <span key={i} className="pointer-events-none absolute" style={{ left: [["8%"], ["90%"], ["14%"], ["84%"], ["50%"], ["20%"], ["78%"]][i][0], top: ["10%", "14%", "80%", "78%", "4%", "45%", "45%"][i] }}>{el}</span>)}
+        <span key={i} className="pointer-events-none absolute animate-float opacity-80" style={{ left: l, top: t, animationDelay: `${i * 0.5}s` }} aria-hidden>
+          <Star className="h-5 w-5" />
+        </span>
+      ))}
 
       <div className="relative mx-auto grid min-h-screen max-w-6xl items-center gap-10 px-6 py-10 md:px-28 lg:grid-cols-2">
         {/* Paper collage */}
