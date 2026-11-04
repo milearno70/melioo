@@ -62,7 +62,7 @@ function Library() {
     </div>
     {filtered.length ? <div className="grid grid-cols-2 gap-x-5 gap-y-8 md:grid-cols-3 xl:grid-cols-4">
       {filtered.map((book) => <article key={book.id} className="min-w-0">
-        <Button variant="ghost" aria-label={`Edit ${book.title}`} onClick={() => setDraft({ ...book })} className={cn("relative flex aspect-[3/4] h-auto w-full flex-col justify-between overflow-hidden whitespace-normal rounded-r-md rounded-l-sm border border-foreground/10 px-5 py-6 text-center shadow-paper transition-transform hover:-translate-y-1", covers[book.cover] ?? covers.blue)}>
+        <Button variant="ghost" aria-label={`Edit ${book.title}`} onClick={() => setDraft({ ...book })} className={cn("relative flex aspect-[3/4] h-auto w-full flex-col justify-between overflow-hidden whitespace-normal rounded-r-md rounded-l-sm border border-foreground/10 px-5 py-6 text-center shadow-paper transition-transform hover:-translate-y-1", covers[book.cover] ?? covers["blue"])}>
           <span className="absolute inset-y-0 left-0 w-3 border-r border-foreground/10 bg-foreground/5" aria-hidden />
           <span className="absolute right-5 top-0 h-8 w-4 bg-card/60" aria-hidden />
           <span className="pt-5 font-hand text-xs uppercase">{book.category || "Personal collection"}</span>
