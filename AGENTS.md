@@ -11,3 +11,4 @@
 
 - MELIO is a React design prototype; all data goes through src/lib/mock/store.ts (localStorage) whose shapes mirror the planned ASP.NET Core REST API in src/lib/mock/api-contract.ts — so the team can swap in real endpoints later.
 - Pomodoro timer stores an end timestamp and recomputes remaining time — keeps it accurate in inactive tabs.
+- Library and Notes have separate TanStack content routes and use the existing mock store actions for every edit, preserving the prototype's API-compatible data boundary.
