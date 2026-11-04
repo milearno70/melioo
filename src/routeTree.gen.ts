@@ -10,7 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LibraryRouteImport } from './routes/library'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as NotesRouteImport } from './routes/notes'
 import { Route as PetRouteImport } from './routes/pet'
 import { Route as PlannerRouteImport } from './routes/planner'
 import { Route as RegisterRouteImport } from './routes/register'
@@ -21,9 +23,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LibraryRoute = LibraryRouteImport.update({
+  id: '/library',
+  path: '/library',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotesRoute = NotesRouteImport.update({
+  id: '/notes',
+  path: '/notes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PetRoute = PetRouteImport.update({
@@ -49,7 +61,9 @@ const TimerRoute = TimerRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
+  '/notes': typeof NotesRoute
   '/pet': typeof PetRoute
   '/planner': typeof PlannerRoute
   '/register': typeof RegisterRoute
@@ -57,7 +71,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
+  '/notes': typeof NotesRoute
   '/pet': typeof PetRoute
   '/planner': typeof PlannerRoute
   '/register': typeof RegisterRoute
@@ -66,7 +82,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
+  '/notes': typeof NotesRoute
   '/pet': typeof PetRoute
   '/planner': typeof PlannerRoute
   '/register': typeof RegisterRoute
@@ -74,15 +92,42 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/pet' | '/planner' | '/register' | '/timer'
+  fullPaths:
+    | '/'
+    | '/library'
+    | '/login'
+    | '/notes'
+    | '/pet'
+    | '/planner'
+    | '/register'
+    | '/timer'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/pet' | '/planner' | '/register' | '/timer'
-  id: '__root__' | '/' | '/login' | '/pet' | '/planner' | '/register' | '/timer'
+  to:
+    | '/'
+    | '/library'
+    | '/login'
+    | '/notes'
+    | '/pet'
+    | '/planner'
+    | '/register'
+    | '/timer'
+  id:
+    | '__root__'
+    | '/'
+    | '/library'
+    | '/login'
+    | '/notes'
+    | '/pet'
+    | '/planner'
+    | '/register'
+    | '/timer'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LibraryRoute: typeof LibraryRoute
   LoginRoute: typeof LoginRoute
+  NotesRoute: typeof NotesRoute
   PetRoute: typeof PetRoute
   PlannerRoute: typeof PlannerRoute
   RegisterRoute: typeof RegisterRoute
@@ -98,11 +143,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/library': {
+      id: '/library'
+      path: '/library'
+      fullPath: '/library'
+      preLoaderRoute: typeof LibraryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notes': {
+      id: '/notes'
+      path: '/notes'
+      fullPath: '/notes'
+      preLoaderRoute: typeof NotesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pet': {
@@ -138,7 +197,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LibraryRoute: LibraryRoute,
   LoginRoute: LoginRoute,
+  NotesRoute: NotesRoute,
   PetRoute: PetRoute,
   PlannerRoute: PlannerRoute,
   RegisterRoute: RegisterRoute,

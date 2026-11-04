@@ -14,6 +14,8 @@ export const Route = createFileRoute("/")({
     { name: "description", content: "MELIO is a cozy study desk with a Pomodoro timer, daily tasks and a virtual pet that grows as you learn." },
     { property: "og:title", content: "MELIO — Your Little Study Universe" },
     { property: "og:description", content: "A cozy study desk with a Pomodoro timer, daily tasks and a virtual pet that grows as you learn." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
   ] }),
   component: Dashboard,
 });
@@ -115,7 +117,7 @@ function Dashboard() {
             <div key={l} className={cn("relative p-4 shadow-paper", c)} style={{ transform: `rotate(${r}deg)` }}>
               <Icon className="h-6 w-6 text-ink" />
               <p className="mt-2 font-hand text-2xl">{l}</p>
-              <p className="text-xs font-bold text-muted-foreground">Coming soon</p>
+              {l === "My Library" ? <Link to="/library" className="text-xs font-bold text-ink hover:underline">Open bookshelf →</Link> : l === "Notes" ? <Link to="/notes" className="text-xs font-bold text-ink hover:underline">Open notebook →</Link> : <p className="text-xs font-bold text-muted-foreground">Coming soon</p>}
             </div>
           ))}
         </div>
