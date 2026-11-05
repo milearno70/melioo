@@ -4,10 +4,14 @@ import { BookOpen, ChartLine, ChevronsLeft, ChevronsRight, Gift, Home, ListTodo,
 import { actions, useStore } from "@/lib/mock/store";
 import { cn } from "@/lib/utils";
 import { Logo, Star, StarField } from "./decor";
+import { useCloud } from "./CloudProvider";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
-type Item = { label: string; icon: typeof Home; to?: "/" | "/timer" | "/pet" | "/planner" | "/library" | "/notes"; soon?: boolean };
+type Item = { label: string; icon: typeof Home; to?: "/" | "/timer" | "/pet" | "/planner" | "/library" | "/notes" | "/tasks" | "/tracking"; soon?: boolean };
 const NAV: { title: string; items: Item[] }[] = [
-  { title: "Main", items: [{ label: "Dashboard", icon: Home, to: "/" }, { label: "Study Timer", icon: Timer, to: "/timer" }, { label: "AI Task Planner", icon: Wand2, to: "/planner" }, { label: "Tasks", icon: ListTodo, soon: true }, { label: "Study Tracking", icon: ChartLine, soon: true }] },
+  { title: "Main", items: [{ label: "Dashboard", icon: Home, to: "/" }, { label: "Study Timer", icon: Timer, to: "/timer" }, { label: "AI Task Planner", icon: Wand2, to: "/planner" }, { label: "Tasks", icon: ListTodo, to: "/tasks" }, { label: "Study Tracking", icon: ChartLine, to: "/tracking" }] },
   { title: "My Space", items: [{ label: "My Library", icon: BookOpen, to: "/library" }, { label: "Notes", icon: NotebookPen, to: "/notes" }, { label: "My Pet", icon: PawPrint, to: "/pet" }] },
   { title: "Rewards", items: [{ label: "Reward Shop", icon: Gift, soon: true }, { label: "Achievements", icon: Trophy, soon: true }] },
   { title: "Other", items: [{ label: "AI Assistant", icon: Sparkles, soon: true }, { label: "Settings", icon: Settings, soon: true }] },
@@ -55,13 +59,15 @@ export function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const [open, setOpen] = useState(false);
-  const [ready, setReady] = useState(false);
-  useEffect(() => setReady(true), []);
-  useEffect(() => { if (ready && !user) navigate({ to: "/login" }); }, [ready, user, navigate]);
+  const cloud = useCloud();
+  const queryClient = useQueryClient();
+  if (!cloud.ready || cloud.loading || (cloud.signedIn && !user && !cloud.error)) return <div className="grid min-h-screen place-items-center font-hand text-2xl text-ink">Opening your notebook…</div>;
+  if (!cloud.signedIn) return <div className="grid min-h-screen place-items-center px-4"><div className="text-center"><Logo /><h1 className="my-4 font-hand text-3xl text-ink">Your study space is waiting</h1><Button asChild><Link to="/login">Log in</Link></Button><Button asChild variant="link"><Link to="/register">Create account</Link></Button></div></div>;
+  if (cloud.error) return <div className="grid min-h-screen place-items-center"><div className="text-center"><p className="mb-4">Your notebook could not be opened.</p><Button onClick={cloud.retry}>Try again</Button></div></div>;
 
   const footer = (c: boolean) => (
     <div className="border-t border-dashed px-3 py-3">
-      <button onClick={() => { actions.logout(); navigate({ to: "/login" }); }}
+      <button onClick={async () => { await queryClient.cancelQueries(); queryClient.clear(); await supabase.auth.signOut(); actions.logout(); navigate({ to: "/login", replace: true }); }}
         className={cn("flex w-full items-center gap-3 rounded-md px-2.5 py-2 text-sm font-semibold text-muted-foreground hover:bg-muted", c && "justify-center")}>
         <LogOut className="h-[18px] w-[18px]" />{!c && "Log out"}
       </button>
