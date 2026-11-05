@@ -8,9 +8,9 @@ export function useTimerTicker() {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     if (!timer.running) return;
-    const check = () => {
+    const check = async () => {
       setNow(Date.now());
-      const done = actions.tick();
+      const done = await actions.tick().catch(() => null);
       if (done) {
         if (done.mode === "focus") {
           toast.success("Focus session complete! ⭐", { description: `+${done.points} points · +${done.xp} XP for your pet${done.goalHit ? " · Daily goal reached!" : ""}` });

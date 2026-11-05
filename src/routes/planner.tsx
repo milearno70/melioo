@@ -45,9 +45,10 @@ function Planner() {
 
   const update = (key: string, p: Partial<Draft>) => setDrafts((d) => d.map((x) => (x.key === key ? { ...x, ...p } : x)));
 
-  function save() {
+  async function save() {
     const valid = drafts.filter((d) => d.title.trim());
-    actions.addTasks(valid.map(({ title, subjectId, priority, due }) => ({ title: title.trim(), subjectId, priority, due })));
+    try { await actions.addTasks(valid.map(({ title, subjectId, priority, due }) => ({ title: title.trim(), subjectId, priority, due })));
+    } catch { return; }
     toast.success(`${valid.length} tasks added to your planner ✦`);
     setDrafts([]); setText("");
   }
