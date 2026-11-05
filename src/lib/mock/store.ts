@@ -5,6 +5,8 @@
  * and point/XP rules here will move server-side (RewardsController / PetController).
  */
 import { useSyncExternalStore } from "react";
+import { toast } from "sonner";
+import type { CloudState, StudyInput, StudyResult } from "@/lib/study.functions";
 
 export type Mode = "focus" | "short" | "long";
 export type PetMood = "happy" | "sleeping" | "excited" | "tired" | "hungry";
@@ -50,17 +52,8 @@ function seed(): State {
       { id: "db", name: "Database Systems", color: "lavender" },
       { id: "net", name: "Computer Networks", color: "butter" },
     ],
-    tasks: [
-      { id: "t1", title: "Finish SQL joins worksheet", subjectId: "db", priority: "high", due: today(), done: false },
-      { id: "t2", title: "Read chapter 4: Limits", subjectId: "math", priority: "medium", due: today(), done: true },
-      { id: "t3", title: "Practice C# LINQ exercises", subjectId: "prog", priority: "medium", due: today(), done: false },
-      { id: "t4", title: "Essay outline — climate", subjectId: "eng", priority: "low", due: plusDays(1), done: false },
-      { id: "t5", title: "Subnetting quiz prep", subjectId: "net", priority: "high", due: plusDays(2), done: false },
-    ],
-    sessions: [
-      { id: "s1", subjectId: "prog", minutes: 25, mode: "focus", endedAt: now - 3 * 36e5 },
-      { id: "s2", subjectId: "math", minutes: 25, mode: "focus", endedAt: now - 2 * 36e5 },
-    ],
+    tasks: [],
+    sessions: [],
     books: [
       { id: "b1", title: "Clean Code", author: "Robert C. Martin", category: "Programming", status: "reading", progress: 45, cover: "blue", description: "Reading a chapter each weekend.", createdAt: now - 5e8 },
       { id: "b2", title: "Database System Concepts", author: "Silberschatz et al.", category: "Textbook", status: "reading", progress: 20, cover: "lavender", description: "Course textbook for DB Systems.", createdAt: now - 4e8 },
@@ -72,8 +65,8 @@ function seed(): State {
       { id: "n2", title: "Limits — key ideas", content: "lim x→a f(x) = L means f gets arbitrarily close to L.\nSqueeze theorem for sin(x)/x → 1.", subjectId: "math", tags: ["calculus"], pinned: false, updatedAt: now - 864e5 },
       { id: "n3", title: "Essay brainstorm", content: "Remote learning: flexibility vs. isolation.\nInterview two classmates?", subjectId: "eng", tags: ["ideas"], pinned: false, updatedAt: now - 2 * 864e5 },
     ],
-    pet: { name: "Mochi", happiness: 78, energy: 64, hunger: 40, xp: 140, level: 3, accessory: "bow" },
-    points: 320,
+    pet: { name: "Mochi", happiness: 78, energy: 64, hunger: 40, xp: 0, level: 1, accessory: "bow" },
+    points: 0,
     settings: defaultSettings,
     timer: { mode: "focus", running: false, endsAt: null, remainingMs: 25 * 60e3, subjectId: "prog", focusCount: 0 },
   };
@@ -89,12 +82,12 @@ function load() {
   loaded = true;
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) state = { ...seed(), ...JSON.parse(raw) };
+    if (raw) { const saved = JSON.parse(raw); state = { ...seed(), books: saved.books ?? seed().books, notes: saved.notes ?? seed().notes }; }
   } catch { /* ignore */ }
 }
 function set(fn: (s: State) => State) {
   state = fn(state);
-  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { /* ignore */ }
+  try { localStorage.setItem(KEY, JSON.stringify({ books: state.books, notes: state.notes })); } catch { /* ignore */ }
   listeners.forEach((l) => l());
 }
 
@@ -119,33 +112,30 @@ export function petMood(p: Pet): PetMood {
   return "happy";
 }
 
-/* ---------- Mock rules (will be server-side) ---------- */
 export const RULES = { focusPoints: 10, focusXp: 20, goalBonusPoints: 25, goalBonusXp: 30, taskPoints: 5 };
-
-function addXp(p: Pet, xp: number): Pet {
-  let total = p.xp + xp, level = p.level;
-  while (total >= level * XP_PER_LEVEL) { total -= level * XP_PER_LEVEL; level++; }
-  return { ...p, xp: total, level };
+let transport: ((input: StudyInput) => Promise<StudyResult>) | null = null;
+let completing = false;
+export const connectCloud = (fn: typeof transport) => { transport = fn; };
+export function hydrateCloud(data: CloudState, user: User) { set((s) => ({ ...s, ...data, user })); }
+export function clearCloud() { transport = null; set((s) => ({ ...s, user: null, tasks: [], sessions: [], points: 0, pet: seed().pet, timer: seed().timer })); }
+async function remote(input: StudyInput): Promise<StudyResult> {
+  if (!transport) throw new Error("Your account is still opening. Please try again.");
+  try { return await transport(input); } catch (e) { toast.error(e instanceof Error ? e.message : "Could not save. Please try again."); throw e; }
 }
-
+const run = (input: StudyInput) => { void remote(input).catch(() => {}); };
 export const actions = {
   login(user: User) { set((s) => ({ ...s, user })); },
-  logout() { set((s) => ({ ...s, user: null })); },
-  renamePet(name: string) { set((s) => ({ ...s, pet: { ...s.pet, name } })); },
-  setAccessory(a: Pet["accessory"]) { set((s) => ({ ...s, pet: { ...s.pet, accessory: a } })); },
-  feed() { set((s) => ({ ...s, pet: { ...s.pet, hunger: clamp(s.pet.hunger - 30), happiness: clamp(s.pet.happiness + 5), energy: clamp(s.pet.energy + 10), lastAction: "feed", lastActionAt: Date.now() } })); },
-  play() { set((s) => ({ ...s, pet: { ...s.pet, happiness: clamp(s.pet.happiness + 12), energy: clamp(s.pet.energy - 8), hunger: clamp(s.pet.hunger + 6), lastAction: "play", lastActionAt: Date.now() } })); },
-  rest() { set((s) => ({ ...s, pet: { ...s.pet, energy: clamp(s.pet.energy + 25), lastAction: "rest", lastActionAt: Date.now() } })); },
-  toggleTask(id: string) {
-    set((s) => {
-      const t = s.tasks.find((x) => x.id === id); if (!t) return s;
-      const delta = t.done ? -RULES.taskPoints : RULES.taskPoints;
-      return { ...s, points: s.points + delta, tasks: s.tasks.map((x) => (x.id === id ? { ...x, done: !x.done } : x)) };
-    });
-  },
-  addTasks(list: Omit<Task, "id" | "done">[]) {
-    set((s) => ({ ...s, tasks: [...s.tasks, ...list.map((t) => ({ ...t, id: crypto.randomUUID(), done: false }))] }));
-  },
+  logout() { clearCloud(); },
+  renamePet(name: string) { return remote({ command: "renamePet", payload: { name } }); },
+  setAccessory(accessory: Pet["accessory"]) { run({ command: "setAccessory", payload: { accessory } }); },
+  feed() { run({ command: "feed", payload: {} }); },
+  play() { run({ command: "play", payload: {} }); },
+  rest() { run({ command: "rest", payload: {} }); },
+  toggleTask(id: string) { run({ command: "toggleTask", payload: { id } }); },
+  saveTask(task: Omit<Task, "done" | "id"> & { id?: string }) { return remote({ command: "saveTask", payload: task }); },
+  deleteTask(id: string) { return remote({ command: "deleteTask", payload: { id } }); },
+  saveSubject(subject: Omit<Subject, "id"> & { id?: string }) { return remote({ command: "saveSubject", payload: subject as { id?: string; name: string; color: "blue" | "pink" | "mint" | "lavender" | "butter" | "peach" } }); },
+  addTasks(tasks: Omit<Task, "id" | "done">[]) { return remote({ command: "addTasks", payload: { tasks } }); },
   saveBook(b: Omit<Book, "id" | "createdAt"> & { id?: string }) {
     set((s) => b.id ? { ...s, books: s.books.map((x) => (x.id === b.id ? { ...x, ...b, id: x.id } : x)) }
       : { ...s, books: [{ ...b, id: crypto.randomUUID(), createdAt: Date.now() }, ...s.books] });
@@ -158,45 +148,19 @@ export const actions = {
   },
   updateNote(id: string, p: Partial<Omit<Note, "id">>) { set((s) => ({ ...s, notes: s.notes.map((n) => (n.id === id ? { ...n, ...p, updatedAt: Date.now() } : n)) })); },
   deleteNote(id: string) { set((s) => ({ ...s, notes: s.notes.filter((n) => n.id !== id) })); },
-  updateSettings(p: Partial<Settings>) {
-    set((s) => {
-      const settings = { ...s.settings, ...p };
-      const timer = s.timer.running ? s.timer : { ...s.timer, remainingMs: settings[s.timer.mode] * 60e3 };
-      return { ...s, settings, timer };
-    });
-  },
-  /* Timer — accurate via timestamps, not interval counting */
-  setMode(mode: Mode) { set((s) => ({ ...s, timer: { ...s.timer, mode, running: false, endsAt: null, remainingMs: s.settings[mode] * 60e3 } })); },
-  setSubject(subjectId: string) { set((s) => ({ ...s, timer: { ...s.timer, subjectId } })); },
-  start() { set((s) => (s.timer.running ? s : { ...s, timer: { ...s.timer, running: true, endsAt: Date.now() + s.timer.remainingMs } })); },
-  pause() { set((s) => (!s.timer.running || !s.timer.endsAt ? s : { ...s, timer: { ...s.timer, running: false, remainingMs: Math.max(0, s.timer.endsAt - Date.now()), endsAt: null } })); },
-  reset() { set((s) => ({ ...s, timer: { ...s.timer, running: false, endsAt: null, remainingMs: s.settings[s.timer.mode] * 60e3 } })); },
-  /** Returns a summary if a session just completed. */
-  tick(): null | { mode: Mode; points: number; xp: number; goalHit: boolean } {
+  updateSettings(payload: Partial<Settings>) { run({ command: "updateSettings", payload }); },
+  setMode(mode: Mode) { run({ command: "setMode", payload: { mode } }); },
+  setSubject(subjectId: string) { run({ command: "setSubject", payload: { subjectId } }); },
+  start() { run({ command: "start", payload: {} }); },
+  pause() { run({ command: "pause", payload: {} }); },
+  reset() { run({ command: "reset", payload: {} }); },
+  async tick(): Promise<null | { mode: Mode; points: number; xp: number; goalHit: boolean }> {
     const s = getState();
-    if (!s.timer.running || !s.timer.endsAt || Date.now() < s.timer.endsAt) return null;
-    const mode = s.timer.mode;
-    let points = 0, xp = 0, goalHit = false;
-    set((st) => {
-      const minutes = st.settings[mode];
-      const session: Session = { id: crypto.randomUUID(), subjectId: st.timer.subjectId, minutes, mode, endedAt: st.timer.endsAt! };
-      let pet = st.pet, focusCount = st.timer.focusCount, next: Mode = "focus";
-      if (mode === "focus") {
-        const before = focusMinutesToday(st.sessions);
-        points = RULES.focusPoints; xp = RULES.focusXp;
-        if (before < st.settings.dailyGoalMin && before + minutes >= st.settings.dailyGoalMin) {
-          goalHit = true; points += RULES.goalBonusPoints; xp += RULES.goalBonusXp;
-        }
-        pet = addXp({ ...pet, happiness: clamp(pet.happiness + 6), energy: clamp(pet.energy - 5), hunger: clamp(pet.hunger + 5) }, xp);
-        focusCount++;
-        next = focusCount % st.settings.longEvery === 0 ? "long" : "short";
-      }
-      return {
-        ...st, pet, points: st.points + points, sessions: [...st.sessions, session],
-        timer: { ...st.timer, mode: next, running: false, endsAt: null, remainingMs: st.settings[next] * 60e3, focusCount },
-      };
-    });
-    return { mode, points, xp, goalHit };
+    if (completing || !transport || !s.timer.running || !s.timer.endsAt || Date.now() < s.timer.endsAt) return null;
+    completing = true;
+    try { const result = await remote({ command: "tick", payload: {} });
+      return result.completed && result.mode ? { mode: result.mode, points: result.points ?? 0, xp: result.xp ?? 0, goalHit: result.goalHit ?? false } : null;
+    } finally { completing = false; }
   },
 };
 

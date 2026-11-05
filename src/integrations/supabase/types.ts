@@ -14,13 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          avatar_url: string
+          display_name: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string
+          display_name?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string
+          display_name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      study_workspaces: {
+        Row: {
+          data: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          data?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          data?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      study_command: {
+        Args: { command: string; payload?: Json }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never

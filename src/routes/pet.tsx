@@ -22,11 +22,11 @@ function PetPage() {
   const pet = useStore((s) => s.pet);
   const [name, setName] = useState("");
 
-  function rename(e: React.FormEvent) {
+  async function rename(e: React.FormEvent) {
     e.preventDefault();
     const n = name.trim();
     if (n.length < 1 || n.length > 20) { toast.error("Names should be 1–20 characters"); return; }
-    actions.renamePet(n); setName(""); toast.success(`Say hi to ${n}!`);
+    try { await actions.renamePet(n); } catch { return; } setName(""); toast.success(`Say hi to ${n}!`);
   }
 
   return (
