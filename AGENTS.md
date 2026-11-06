@@ -9,6 +9,8 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 
-- MELIO is a React design prototype; all data goes through src/lib/mock/store.ts (localStorage) whose shapes mirror the planned ASP.NET Core REST API in src/lib/mock/api-contract.ts — so the team can swap in real endpoints later.
+- The shared store is a view adapter: books and notes remain local prototypes; tasks, subjects, sessions, settings, rewards and pet state come from authenticated Lovable Cloud commands so device-local data cannot award rewards.
 - Pomodoro timer stores an end timestamp and recomputes remaining time — keeps it accurate in inactive tabs.
 - Library and Notes have separate TanStack content routes and use the existing mock store actions for every edit, preserving the prototype's API-compatible data boundary.
+- Cloud study commands serialize edits under a per-user database row lock; reward totals and timer completion are computed in the database, never accepted from the browser.
+- Public study routes render an inline sign-in screen when signed out; private data is fetched only after Cloud authentication and every command revalidates the bearer token.
