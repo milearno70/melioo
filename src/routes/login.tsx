@@ -3,7 +3,9 @@ import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod";
 import { AuthNotebook, Field, inputCls } from "@/components/melio/AuthNotebook";
-import { actions } from "@/lib/mock/store";
+import { supabase } from "@/integrations/supabase/client";
+import { SocialSignIn } from "@/components/melio/SocialSignIn";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/login")({
@@ -27,19 +29,19 @@ function Login() {
   const [errors, setErrors] = useState<Partial<Record<"email" | "password", string>>>({});
   const [loading, setLoading] = useState(false);
 
-  function submit(e: React.FormEvent<HTMLFormElement>) {
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     const r = schema.safeParse({ email: fd.get("email"), password: fd.get("password") });
     if (!r.success) { setErrors(Object.fromEntries(r.error.issues.map((i) => [i.path[0], i.message]))); return; }
     setErrors({}); setLoading(true);
-    // Prototype: no backend yet. Real login → POST /api/auth/login (password verified server-side, never stored here).
-    setTimeout(() => {
-      const name = (r.data.email.split("@")[0] ?? "").replace(/[._-]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-      actions.login({ name, email: r.data.email });
-      toast.success(`Welcome back, ${name}!`);
-      nav({ to: "/" });
-    }, 500);
+    try {
+      const { error } = await supabase.auth.signInWithPassword(r.data);
+      if (error) { toast.error("Check your email and password, and confirm your email before signing in."); return; }
+      toast.success("Welcome back!");
+      await nav({ to: "/" });
+    } catch { toast.error("Sign-in could not be completed. Please try again."); }
+    finally { setLoading(false); }
   }
 
   return (
@@ -60,14 +62,14 @@ function Login() {
         </Field>
         <div className="flex items-center justify-between text-sm">
           <label className="flex items-center gap-2"><input type="checkbox" name="remember" className="accent-[var(--ink)]" />Remember me</label>
-          <button type="button" onClick={() => toast("Password reset needs the backend — coming with the API.")} className="font-semibold text-ink underline-offset-2 hover:underline">Forgot password?</button>
+          <Button asChild variant="link" className="px-0"><Link to="/reset-password">Forgot password?</Link></Button>
         </div>
-        <button disabled={loading} className="w-full rounded-md bg-primary py-2.5 font-bold text-primary-foreground shadow-paper transition-transform hover:-translate-y-0.5 disabled:opacity-60">
+        <Button disabled={loading} className="w-full">
           {loading ? "Opening notebook…" : "Log in"}
-        </button>
+        </Button>
       </form>
       <p className="mt-5 text-center text-sm">New here? <Link to="/register" className="font-bold text-ink hover:underline">Create your notebook</Link></p>
-      <p className="mt-4 rounded-sm bg-butter/70 px-3 py-2 text-center text-xs">Prototype mode: any valid email + 8-char password works. Nothing is sent to a server.</p>
+      <SocialSignIn />
     </AuthNotebook>
   );
 }

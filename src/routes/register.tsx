@@ -4,7 +4,9 @@ import { useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
 import { AuthNotebook, Field, inputCls } from "@/components/melio/AuthNotebook";
-import { actions } from "@/lib/mock/store";
+import { supabase } from "@/integrations/supabase/client";
+import { SocialSignIn } from "@/components/melio/SocialSignIn";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/register")({
   head: () => ({ meta: [
@@ -27,18 +29,23 @@ const schema = z.object({
 function Register() {
   const nav = useNavigate();
   const [show, setShow] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<"name" | "email" | "password" | "confirm" | "terms", string>>>({});
 
-  function submit(e: React.FormEvent<HTMLFormElement>) {
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     const r = schema.safeParse(Object.fromEntries(fd));
     if (!r.success) { setErrors(Object.fromEntries(r.error.issues.map((i) => [i.path[0], i.message]))); return; }
     setErrors({});
-    // Prototype: real signup → POST /api/auth/register (server hashes the password). Password is NOT stored here.
-    actions.login({ name: r.data.name, email: r.data.email });
-    toast.success("Notebook created! Meet your new study buddy.");
-    nav({ to: "/" });
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signUp({ email: r.data.email, password: r.data.password, options: { data: { name: r.data.name }, emailRedirectTo: window.location.origin } });
+      if (error) { toast.error("Account creation failed. Please try again or log in if you already have an account."); return; }
+      if (data.session) await nav({ to: "/" }); else setSent(true);
+    } catch { toast.error("Account creation could not be completed. Please try again."); }
+    finally { setLoading(false); }
   }
 
   const pw = (id: "password" | "confirm", label: string) => (
@@ -58,7 +65,7 @@ function Register() {
     <AuthNotebook>
       <h1 className="font-hand text-4xl text-ink">Start a new notebook</h1>
       <p className="mb-5 text-sm text-muted-foreground">A cozy little space for everything you're learning.</p>
-      <form onSubmit={submit} noValidate className="space-y-3.5">
+      {sent ? <p role="status" className="bg-mint p-4">Check your email to confirm your account, then log in to open your notebook.</p> : <form onSubmit={submit} noValidate className="space-y-3.5">
         <Field id="name" label="Full name" error={errors.name}><input id="name" name="name" autoComplete="name" className={inputCls} aria-invalid={!!errors.name} /></Field>
         <Field id="email" label="Email" error={errors.email}><input id="email" name="email" type="email" autoComplete="email" className={inputCls} aria-invalid={!!errors.email} /></Field>
         {pw("password", "Password")}
@@ -67,9 +74,10 @@ function Register() {
           <label className="flex items-start gap-2 text-sm"><input type="checkbox" name="terms" className="mt-1 accent-[var(--ink)]" />I agree to the Terms and Privacy Policy</label>
           {errors.terms && <p role="alert" className="mt-1 text-xs font-semibold text-destructive">{errors.terms}</p>}
         </div>
-        <button className="w-full rounded-md bg-primary py-2.5 font-bold text-primary-foreground shadow-paper transition-transform hover:-translate-y-0.5">Create account</button>
-      </form>
+        <Button disabled={loading} className="w-full">{loading ? "Creating account…" : "Create account"}</Button>
+      </form>}
       <p className="mt-5 text-center text-sm">Already have one? <Link to="/login" className="font-bold text-ink hover:underline">Log in</Link></p>
+      <SocialSignIn />
     </AuthNotebook>
   );
 }
